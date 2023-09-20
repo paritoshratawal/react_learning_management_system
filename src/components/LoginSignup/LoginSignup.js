@@ -4,6 +4,9 @@ import Dropdown from 'react-dropdown';
 import Form from 'react-bootstrap/Form';
 import { Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+// import axios from 'axios';
+import axiosInstance from '../../services/Interceptor';
+
 import './style.css'
 
 
@@ -46,20 +49,51 @@ export default function LoginSignup() {
     setDisableLoginBtn(!isValid);
   }
 
-  const proceed = () => {
+  const validatePassword = (event) => {
+    setPassword(event.target.value);
+  }
+
+  const proceed = async() => {
     console.log('proceed');
-    if(isLogin){
-      localStorage.setItem('login', true);
-      navigate('/student', { replace: true });
-    }
+    console.log(email);
+    console.log(password);
+    const login_data = await axiosInstance.post('/user/login', { email: email, password: password });
+    console.log(login_data);
+    // axios.post('http://localhost:2000/user/login', {
+    //   email: email, 
+    //   password: password
+    // }).then((res) => {
+    //   navigate('/student', { replace: true });
+    // }).catch(e => {
+    //   console.log(e);
+    // });
   }
 
   return (
     <div className="App-header">
       <Form className="wdth_22_prcnt">
-        <Form.Group  controlId="formBasicEmail">
+        {
+          !isLogin && <Form.Group controlId="formBasicFirstName">
+            <Form.Label>First Name</Form.Label>
+            <Form.Control type="email" onChange={validateEmail} value={email} placeholder="Enter First Name" />
+            {disableLoginBtn && <Form.Text className="text-muted red_color">
+              Invalid Password
+            </Form.Text>}
+          </Form.Group>
+        }
+
+        { !isLogin && <Form.Group controlId="formBasicLastName">
+          <Form.Label>Last Name</Form.Label>
+          <Form.Control type="email" onChange={validateEmail} value={email} placeholder="Enter Last Name" />
+          {disableLoginBtn && <Form.Text className="text-muted red_color">
+            Invalid Password
+          </Form.Text>}
+        </Form.Group>
+        }
+
+        <Form.Group controlId="formBasicEmail">
           <Form.Label>Email address</Form.Label>
-          <Form.Control type="email" onChange={validateEmail} value={email} placeholder="Enter email"/>
+          <Form.Control type="email" onChange={validateEmail} value={email} placeholder="Enter email" />
           {disableLoginBtn && <Form.Text className="text-muted red_color">
             Invalid Password
           </Form.Text>}
@@ -67,18 +101,19 @@ export default function LoginSignup() {
 
         <Form.Group className="" controlId="formBasicPassword">
           <Form.Label>Password</Form.Label>
-          <Form.Control type="password" placeholder="Password" />
+          <Form.Control type="password" placeholder="Password" onChange={validatePassword}  value={password} />
         </Form.Group>
+        
         {!isLogin && <Form.Group className="" controlId="formBasicCheckbox">
-        <div className='row my-4'>
-          <div className='col-md-4'>Login As</div>
-          <div className='col-md-8'>
-            <div>
-              <Dropdown
-              options={user_type} onChange={selectedSignUpType} value={signUpType} placeholder="Select an option" />
+          <div className='row my-4'>
+            <div className='col-md-4'>Login As</div>
+            <div className='col-md-8'>
+              <div>
+                <Dropdown
+                  options={user_type} onChange={selectedSignUpType} value={signUpType} placeholder="Select an option" />
+              </div>
             </div>
           </div>
-        </div>
         </Form.Group>}
         <div className='row mrgn_top_13px'>
           <div className='col-md-6'>
@@ -90,43 +125,5 @@ export default function LoginSignup() {
         </div>
       </Form>
     </div>
-
-    // <div className="App-header">
-    //   <div className='container'>
-    //     <div className="card">
-    //       <div className="card-body">
-    //         {isLogin ? <h1>Login</h1> : <h1>Sign Up</h1>}
-    //         <div className='row'>
-    //           <div className='col-md-4'>Email</div>
-    //           <div className='col-md-8'><input className="form-control" list="datalistOptions" id="exampleDataList" placeholder="Email" /></div>
-    //         </div>
-    //         <div className='row my-4'>
-    //           <div className='col-md-4'>Password</div>
-    //           <div className='col-md-8'><input className="form-control" list="datalistOptions" id="exampleDataList" placeholder="Password" /></div>
-    //         </div>
-    //         {!isLogin && <div className='row my-4'>
-    //           <div className='col-md-4'>Login As</div>
-    //           <div className='col-md-8'>
-    //             <div>
-    //               <Dropdown
-    //                arrowClosed={<span className="arrow-closed" />}
-    //               arrowOpen={<span className="arrow-open" />}
-    //                options={user_type} onChange={selectedSignUpType} value={signUpType} placeholder="Select an option" />
-    //             </div>
-    //           </div>
-    //         </div>}
-
-    //         <div className='row'>
-    //           <div className='col-md-6'>
-    //              <Button variant='primary' onClick={switchMode}>{isLogin ? <span>Sign Up</span> : <span>Back To Login</span>}</Button>
-    //           </div>
-    //           <div className='col-md-6'>
-    //             <Button variant='primary'>{isLogin ? <span>Login</span> : <span>Submit</span>}</Button>
-    //           </div>
-    //         </div>
-    //       </div>
-    //     </div>
-    //   </div>
-    // </div>
   )
 }
