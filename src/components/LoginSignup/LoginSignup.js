@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../services/Interceptor';
 
 import './style.css'
+import AlertComponent from '../utils/Alert';
 
 
 export default function LoginSignup() {
@@ -25,6 +26,8 @@ export default function LoginSignup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [disableLoginBtn, setDisableLoginBtn] = useState(false);
+  const [isUnAuth, setIsUnAuth] = useState(false);
+  const [alertOptions, setAlertOptions] = useState({ message: '', variant: '' });
 
   const switchMode = (event) => {
     console.log('switchMode');
@@ -53,12 +56,55 @@ export default function LoginSignup() {
     setPassword(event.target.value);
   }
 
-  const proceed = async() => {
-    console.log('proceed');
-    console.log(email);
-    console.log(password);
-    const login_data = await axiosInstance.post('/user/login', { email: email, password: password });
-    console.log(login_data);
+  const proceed = async () => {
+    console.log('Login');
+    console.log('email',email);
+    console.log('password',password);
+    axiosInstance.post('/user/login', { email: email, password: password }).then((res) => {
+      console.log('res',res);
+      if (res.status === 200) {
+        localStorage.setItem('token', res.data.token);
+        setIsUnAuth(false);
+        switch (res.data.user_info.login_type) {
+          case 'student':
+            navigate('/student', {state: {user: res.data.user_info}, replace: true });
+            break;
+          default:
+            break;
+        }
+      }
+    }).catch((e) => {
+      console.log(e);
+      const status_code = e.response.status;
+      switch (status_code) {
+        case 401:
+          console.log('401');
+          setIsUnAuth(true);
+          setTimeout(() => {
+            setIsUnAuth(false);
+          }, 1000)
+          setAlertOptions({ message: 'Invalid Credential', variant: 'danger' });
+          break;
+      }
+    });
+    // try{
+    //   if (login_data.status === 200) {
+    //     localStorage.setItem('token', login_data.data.token);
+    //     setIsUnAuth(false);
+    //     switch (login_data.data.user_info.login_type) {
+    //       case 'student':
+    //         navigate('/student', { replace: true });
+    //         break;
+    //       default:
+    //         break;
+    //     }
+    //   }
+    // }catch(e){
+    //   console.log(e);
+    // }
+    // console.log('login_data',login_data);
+
+    // console.log(login_data);
     // axios.post('http://localhost:2000/user/login', {
     //   email: email, 
     //   password: password
@@ -70,60 +116,63 @@ export default function LoginSignup() {
   }
 
   return (
-    <div className="App-header">
-      <Form className="wdth_22_prcnt">
-        {
-          !isLogin && <Form.Group controlId="formBasicFirstName">
-            <Form.Label>First Name</Form.Label>
-            <Form.Control type="email" onChange={validateEmail} value={email} placeholder="Enter First Name" />
+    <>
+      <div className="App-header">
+        {isUnAuth && <AlertComponent alertOptions={alertOptions} />}
+        <Form className="wdth_22_prcnt">
+          {
+            !isLogin && <Form.Group controlId="formBasicFirstName">
+              <Form.Label>First Name</Form.Label>
+              <Form.Control type="email" onChange={validateEmail} value={email} placeholder="Enter First Name" />
+              {disableLoginBtn && <Form.Text className="text-muted red_color">
+                Invalid Password
+              </Form.Text>}
+            </Form.Group>
+          }
+
+          {!isLogin && <Form.Group controlId="formBasicLastName">
+            <Form.Label>Last Name</Form.Label>
+            <Form.Control type="email" onChange={validateEmail} value={email} placeholder="Enter Last Name" />
             {disableLoginBtn && <Form.Text className="text-muted red_color">
               Invalid Password
             </Form.Text>}
           </Form.Group>
-        }
+          }
 
-        { !isLogin && <Form.Group controlId="formBasicLastName">
-          <Form.Label>Last Name</Form.Label>
-          <Form.Control type="email" onChange={validateEmail} value={email} placeholder="Enter Last Name" />
-          {disableLoginBtn && <Form.Text className="text-muted red_color">
-            Invalid Password
-          </Form.Text>}
-        </Form.Group>
-        }
+          <Form.Group controlId="formBasicEmail">
+            <Form.Label>Email address</Form.Label>
+            <Form.Control type="email" onChange={validateEmail} value={email} placeholder="Enter email" />
+            {disableLoginBtn && <Form.Text className="text-muted red_color">
+              Invalid Password
+            </Form.Text>}
+          </Form.Group>
 
-        <Form.Group controlId="formBasicEmail">
-          <Form.Label>Email address</Form.Label>
-          <Form.Control type="email" onChange={validateEmail} value={email} placeholder="Enter email" />
-          {disableLoginBtn && <Form.Text className="text-muted red_color">
-            Invalid Password
-          </Form.Text>}
-        </Form.Group>
+          <Form.Group className="" controlId="formBasicPassword">
+            <Form.Label>Password</Form.Label>
+            <Form.Control type="password" placeholder="Password" onChange={validatePassword} value={password} />
+          </Form.Group>
 
-        <Form.Group className="" controlId="formBasicPassword">
-          <Form.Label>Password</Form.Label>
-          <Form.Control type="password" placeholder="Password" onChange={validatePassword}  value={password} />
-        </Form.Group>
-        
-        {!isLogin && <Form.Group className="" controlId="formBasicCheckbox">
-          <div className='row my-4'>
-            <div className='col-md-4'>Login As</div>
-            <div className='col-md-8'>
-              <div>
-                <Dropdown
-                  options={user_type} onChange={selectedSignUpType} value={signUpType} placeholder="Select an option" />
+          {!isLogin && <Form.Group className="" controlId="formBasicCheckbox">
+            <div className='row my-4'>
+              <div className='col-md-4'>Login As</div>
+              <div className='col-md-8'>
+                <div>
+                  <Dropdown
+                    options={user_type} onChange={selectedSignUpType} value={signUpType} placeholder="Select an option" />
+                </div>
               </div>
             </div>
+          </Form.Group>}
+          <div className='row mrgn_top_13px'>
+            <div className='col-md-6'>
+              <Button variant='primary' onClick={switchMode}>{isLogin ? <span>Sign Up</span> : <span>Back To Login</span>}</Button>
+            </div>
+            <div className='col-md-6'>
+              <Button variant='primary' disabled={disableLoginBtn} onClick={proceed}>{isLogin ? <span>Login</span> : <span>Submit</span>}</Button>
+            </div>
           </div>
-        </Form.Group>}
-        <div className='row mrgn_top_13px'>
-          <div className='col-md-6'>
-            <Button variant='primary' onClick={switchMode}>{isLogin ? <span>Sign Up</span> : <span>Back To Login</span>}</Button>
-          </div>
-          <div className='col-md-6'>
-            <Button variant='primary' disabled={disableLoginBtn} onClick={proceed}>{isLogin ? <span>Login</span> : <span>Submit</span>}</Button>
-          </div>
-        </div>
-      </Form>
-    </div>
+        </Form>
+      </div>
+    </>
   )
 }

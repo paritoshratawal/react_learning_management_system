@@ -12,6 +12,7 @@
   background-image: url('assets/learning-management-system-hero-shot.jpg');
   min-height: 100vh;
   display: flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -30,4 +31,8 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.lft_72_prcnt {
+  left: 72%;
 }
